@@ -6,6 +6,7 @@ metadata:
 spec:
   ports:
     - port: 3306
+      targetPort: 3306
   selector:
     app: mysql
 ---
@@ -38,11 +39,14 @@ spec:
         volumeMounts:
         - name: mysql-storage
           mountPath: /var/lib/mysql
+
   volumeClaimTemplates:
   - metadata:
       name: mysql-storage
     spec:
-      accessModes: ["ReadWriteOnce"]
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: gp2   # 👈 REQUIRED FOR EKS
       resources:
         requests:
           storage: 10Gi
