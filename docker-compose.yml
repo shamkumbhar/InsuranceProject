@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  mysql-service:
+    image: mysql:8.0
+    container_name: mysql-service
+    environment:
+      MYSQL_ROOT_PASSWORD: "Macky@21"
+      MYSQL_DATABASE: "demo"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  springboot-service:
+    build:
+      context: ./BackEnd/HealthInsurance       # <-- folder containing your backend Dockerfile
+      dockerfile: Dockerfile   # <-- backend Dockerfile name
+    image: springboot-service:latest
+    container_name: springboot-service
+    depends_on:
+      mysql-service:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql-service:3306/demo"
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "Macky@21"
+    ports:
+      - "8089:8089"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  nginx-service:
+    build:
+      context: ./FrontendNew    # <-- folder containing your frontend Dockerfile
+      dockerfile: Dockerfile    # <-- frontend Dockerfile name
+    image: nginx-frontend:latest
+    container_name: nginx-service
+    depends_on:
+      - springboot-service
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+
+networks:
+  app-network:
+    driver: bridge
