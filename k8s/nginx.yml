@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx-frontend:latest   # push to ECR
+        image: shamkumbhar47/frontend:latest
         ports:
         - containerPort: 80
 ---
